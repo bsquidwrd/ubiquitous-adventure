@@ -4,6 +4,8 @@ import hashlib
 import requests
 import json
 
+from requests.api import request
+
 
 client_id = os.environ["TWITCH_CLIENT_ID"]
 client_secret = os.environ["TWITCH_CLIENT_SECRET"]
@@ -66,15 +68,35 @@ def verify_signature(request):
     return False
 
 
-def send_twitch_request(endpoint, body, params, method = "GET", headers = None):
+def send_twitch_request(endpoint, body=None, params=None, method = "GET", headers = None):
     if not headers:
         headers = get_auth_headers()
     url = f"https://api.twitch.tv/helix/{endpoint}"
     try:
-        response = requests.request(method=method, url=url, body=body, headers=headers, params=params)
-        return response.json()
+        request_data = {
+            "method": method,
+            "url": url,
+            "headers": headers
+        }
+        if params:
+            request_data["params"] = params
+
+        if body:
+            request_data["json"] = body
+
+        response = requests.request(**request_data)
+        if method == "DELETE":
+            return True
+        response_json = response.json()
+        if response_json.get("error") and endpoint == eventsub_endpoint:
+            error_type = response_json["error"]
+            error_message = response_json["message"]
+            condition_type = list(body['condition'].keys())[0]
+            condition_id = body['condition'][condition_type]
+            print(f"{endpoint}\t|\t{error_type}\t|\t{condition_type} = {condition_id}\t\t\t|\t{body['type']}: {error_message}")
+        return response_json
     except Exception as e:
-        print(e)
+        raise e
 
 
 def get_scopes_for_event(event_name):
@@ -88,136 +110,157 @@ def get_event_types():
 def get_events(event_name=None):
     events = {
         "channel.update": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['public']
         },
         "channel.follow": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['public']
         },
         "channel.subscribe": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:subscriptions']
         },
         "channel.subscription.end": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:subscriptions']
         },
         "channel.subscription.gift": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:subscriptions']
         },
         "channel.subscription.message": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:subscriptions']
         },
         "channel.cheer": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['bits:read']
         },
         "channel.raid": {
-            "type": "broadcaster",
+            "type": "to_broadcaster_user_id",
             "scopes": ['public']
         },
         "channel.ban": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:moderate']
         },
         "channel.unban": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:moderate']
         },
         "channel.moderator.add": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:moderate']
         },
         "channel.moderator.remove": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:moderate']
         },
         "channel.channel_points_custom_reward.add": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:redemptions']
         },
         "channel.channel_points_custom_reward.update": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:redemptions']
         },
         "channel.channel_points_custom_reward.remove": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:redemptions']
         },
         "channel.channel_points_custom_reward_redemption.add": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:redemptions']
         },
         "channel.channel_points_custom_reward_redemption.update": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:redemptions']
         },
         "channel.poll.begin": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:polls']
         },
         "channel.poll.progress": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:polls']
         },
         "channel.poll.end": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:polls']
         },
         "channel.prediction.begin": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:predictions']
         },
         "channel.prediction.progress": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:predictions']
         },
         "channel.prediction.lock": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:predictions']
         },
         "channel.prediction.end": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:predictions']
         },
         "channel.goal.begin": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:goals']
         },
         "channel.goal.progress": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:goals']
         },
         "channel.goal.end": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:goals']
         },
         "channel.hype_train.begin": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:hype_train']
         },
         "channel.hype_train.progress": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:hype_train']
         },
         "channel.hype_train.end": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['channel:read:hype_train']
         },
         "stream.online": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['public']
         },
         "stream.offline": {
-            "type": "broadcaster",
+            "type": "broadcaster_user_id",
             "scopes": ['public']
         },
         "user.update": {
-            "type": "user",
+            "type": "user_id",
             "scopes": ['public']
         }
     }
     return events.get(event_name, events)
+
+
+def get_subscription_body(user_id, event_name):
+    event_info = get_events(event_name)
+    return {
+        "type": f"{event_name}",
+        "version": "1",
+        "condition": {
+            f"{event_info['type']}": f"{user_id}"
+        },
+        "transport": {
+            "method": "webhook",
+            "callback": "https://example.com/webhooks/callback",
+            "secret": twitch_eventsub_secret
+        }
+    }
+
+def subscribe_user(user_id):
+    for event in get_event_types():
+        body = get_subscription_body(user_id, event)
+        send_twitch_request(endpoint=eventsub_endpoint, method="POST", body=body)
