@@ -88,131 +88,131 @@ def get_event_types():
 def get_events(event_name=None):
     events = {
         "channel.update": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['public']
         },
         "channel.follow": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['public']
         },
         "channel.subscribe": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:subscriptions']
         },
         "channel.subscription.end": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:subscriptions']
         },
         "channel.subscription.gift": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:subscriptions']
         },
         "channel.subscription.message": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:subscriptions']
         },
         "channel.cheer": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['bits:read']
         },
         "channel.raid": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['public']
         },
         "channel.ban": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:moderate']
         },
         "channel.unban": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:moderate']
         },
         "channel.moderator.add": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:moderate']
         },
         "channel.moderator.remove": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:moderate']
         },
         "channel.channel_points_custom_reward.add": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:redemptions']
         },
         "channel.channel_points_custom_reward.update": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:redemptions']
         },
         "channel.channel_points_custom_reward.remove": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:redemptions']
         },
         "channel.channel_points_custom_reward_redemption.add": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:redemptions']
         },
         "channel.channel_points_custom_reward_redemption.update": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:redemptions']
         },
         "channel.poll.begin": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:polls']
         },
         "channel.poll.progress": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:polls']
         },
         "channel.poll.end": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:polls']
         },
         "channel.prediction.begin": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:predictions']
         },
         "channel.prediction.progress": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:predictions']
         },
         "channel.prediction.lock": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:predictions']
         },
         "channel.prediction.end": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:predictions']
         },
         "channel.goal.begin": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:goals']
         },
         "channel.goal.progress": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:goals']
         },
         "channel.goal.end": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:goals']
         },
         "channel.hype_train.begin": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:hype_train']
         },
         "channel.hype_train.progress": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:hype_train']
         },
         "channel.hype_train.end": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['channel:read:hype_train']
         },
         "stream.online": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['public']
         },
         "stream.offline": {
-            "type": "user",
+            "type": "broadcaster",
             "scopes": ['public']
         },
         "user.update": {
