@@ -1,6 +1,7 @@
-from flask import Flask
+from flask import Flask, jsonify
 from methods import twitch
 import requests
+import json
 
 app = Flask(__name__)
 
@@ -9,6 +10,13 @@ def hello_world():
     params = {
         "login": "bsquidwrd"
     }
-    response = requests.get(url="https://api.twitch.tv/helix/users", headers=twitch.get_headers(), params=params)
-    response_json = response.json()
-    return f"<p>Hello, World! This has been changed</p> User ID for bsquidwrd: {response_json['data'][0]['id']}"
+    response = twitch.send_twitch_request(endpoint="users", params=params)
+    for user in response['data']:
+        twitch.subscribe_user(user['id'])
+    return f"<p>Hello, World! This has been changed</p> User ID for {params['login']}: {response['data'][0]['id']}"
+
+
+@app.route("/list")
+def list_subscriptions():
+    response = twitch.send_twitch_request(endpoint = twitch.eventsub_endpoint)
+    return jsonify(response)
