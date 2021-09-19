@@ -20,3 +20,11 @@ def hello_world():
 def list_subscriptions():
     response = twitch.send_twitch_request(endpoint = twitch.eventsub_endpoint)
     return jsonify(response)
+
+
+@app.route("/delete")
+def delete_subscriptions():
+    subscriptions = twitch.send_twitch_request(endpoint = twitch.eventsub_endpoint)
+    for subscription in subscriptions['data']:
+        twitch.send_twitch_request(endpoint=twitch.eventsub_endpoint, method="DELETE", params={"id": subscription["id"]})
+    return f"Deleted subscriptions"
