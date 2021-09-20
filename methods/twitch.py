@@ -1,12 +1,11 @@
-import os
-import hmac
 import hashlib
+import hmac
+import os
 import requests
-import json
-
 from requests.api import request
 
 
+# Define and set variables for various information we need
 client_id = os.environ["TWITCH_CLIENT_ID"]
 client_secret = os.environ["TWITCH_CLIENT_SECRET"]
 twitch_eventsub_secret = os.environ["TWITCH_EVENTSUB_SECRET"]
@@ -16,6 +15,7 @@ twitch_eventsub_secret = os.environ["TWITCH_EVENTSUB_SECRET"]
 eventsub_endpoint = "eventsub/subscriptions"
 
 
+# Get the App Access Token. If one not generated, generate it
 def get_access_token():
     access_token = os.environ.get("TWITCH_ACCESS_TOKEN")
     if access_token:
@@ -23,6 +23,7 @@ def get_access_token():
     return generate_access_token()
 
 
+# Generate App Access Token and set OS variable
 def generate_access_token():
     # Generate an access token for authenticating requests
     auth_body = {
@@ -36,10 +37,12 @@ def generate_access_token():
     auth_response_json = auth_response.json()
 
     # Set Environment variable
-    os.environ["TWITCH_ACCESS_TOKEN"] = auth_response_json["access_token"]
-    return os.environ.get("TWITCH_ACCESS_TOKEN")
+    access_token = auth_response_json["access_token"]
+    os.environ["TWITCH_ACCESS_TOKEN"] = access_token
+    return access_token
 
 
+# Central way to get headers for requests to Twitch
 def get_auth_headers():
     headers = {
         "Client-ID": client_id,
@@ -48,6 +51,7 @@ def get_auth_headers():
     return headers
 
 
+# Validate Access Token
 def validate_auth(access_token):
     headers = {
         "Authorization": f"Bearer {access_token}"
@@ -68,45 +72,62 @@ def verify_signature(request):
     return False
 
 
+# Generic way to send requests to Twitch for ease of use
 def send_twitch_request(endpoint, body=None, params=None, method = "GET", headers = None):
+    # If no special headers are passed, use auth headers
     if not headers:
         headers = get_auth_headers()
     url = f"https://api.twitch.tv/helix/{endpoint}"
     try:
+        # Assemble request data
+        # This can be used as parameters, so we can choose which parts to use
         request_data = {
             "method": method,
             "url": url,
             "headers": headers
         }
+        # If we want to pass in parameters, set the variable to pass
         if params:
             request_data["params"] = params
 
+        # If we want to pass in body (json), set the variable to pass
         if body:
             request_data["json"] = body
 
+        # Make the request
         response = requests.request(**request_data)
+
+        # Twitch doesn't return data when sending DELETE so just return if the call succeeded
         if method == "DELETE":
-            return True
+            return response.status_code == requests.status_codes.ok
+        
+        # Translate the body into JSON
         response_json = response.json()
+        # Twitch sends error if there was an error, so try and interpret it for eventsub/subscriptions
         if response_json.get("error") and endpoint == eventsub_endpoint:
             error_type = response_json["error"]
             error_message = response_json["message"]
             condition_type = list(body['condition'].keys())[0]
             condition_id = body['condition'][condition_type]
+            # Print information so we know what failed
             print(f"{endpoint}\t|\t{error_type}\t|\t{condition_type} = {condition_id}\t\t\t|\t{body['type']}: {error_message}")
+        # Return the response
         return response_json
     except Exception as e:
         raise e
 
 
+# Method to easily get the scopes needed for an event
 def get_scopes_for_event(event_name):
     return get_events().get(event_name["scopes"], "public")
 
 
+# Get all event types
 def get_event_types():
     return get_events().keys()
 
 
+# Get all events, or a specific one
 def get_events(event_name=None):
     events = {
         "channel.update": {
@@ -245,6 +266,7 @@ def get_events(event_name=None):
     return events.get(event_name, events)
 
 
+# Generic-ish body to send to request a subscription setup
 def get_subscription_body(user_id, event_name):
     event_info = get_events(event_name)
     return {
@@ -260,6 +282,8 @@ def get_subscription_body(user_id, event_name):
         }
     }
 
+
+# Subscribe a user to all available events
 def subscribe_user(user_id):
     for event in get_event_types():
         body = get_subscription_body(user_id, event)
