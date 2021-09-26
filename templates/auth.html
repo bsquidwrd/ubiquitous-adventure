@@ -1,0 +1,21 @@
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script>
+    const result = document.querySelector("#findme");
+    const hash2Obj = document.location.hash.toString()
+      .split("&")
+      .map(v => v.split("="))
+      .reduce( (pre, [key, value]) => ({ ...pre, [key]: value }), {} );
+
+    var token_type = hash2Obj['token_type'];
+    var access_token = hash2Obj['#access_token'];
+    var scopes = hash2Obj['scope'];
+
+    // /setvariables/<token_type>/<access_token>/<scopes>
+    var jqxhr = $.get( "/setvariables/" + token_type + "/" + access_token)
+    .done(function(data) {
+        window.location.href = "/events"
+    })
+    .fail(function() {
+        window.location.href = "/"
+    })
+</script>

@@ -1,0 +1,12 @@
+<h1>
+    Signed in and authorized as {{ twitch_user.get('display_name', 'Unknown... Who are you?') }}
+</h1>
+<h5>
+{% if not twitch_user.get('description', '') %}
+    No description set
+{% else %}
+    {{ twitch_user.get('description', 'No description set') }}
+{% endif %}
+</h5>
+
+<img src="{{ twitch_user.get('profile_image_url', '') }}" />

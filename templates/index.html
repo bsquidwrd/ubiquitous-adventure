@@ -1,0 +1,9 @@
+<h1>This is the template</h1>
+
+<p>
+    <a href="{{ twitch_auth_url }}">Login to Twitch</a>
+</p>
+
+<p>
+    User ID for {{ twitch_user.get('login', 'Unknown') }}: {{ twitch_user.get('id', 'n/a') }}
+</p>

@@ -3,12 +3,15 @@ import hmac
 import os
 import requests
 from requests.api import request
+from urllib.parse import urlencode
 
 
 # Define and set variables for various information we need
 client_id = os.environ["TWITCH_CLIENT_ID"]
 client_secret = os.environ["TWITCH_CLIENT_SECRET"]
 twitch_eventsub_secret = os.environ["TWITCH_EVENTSUB_SECRET"]
+
+auth_redirect_uri = "http://localhost:5000/auth"
 
 
 # The endpoint for all things Event Sub
@@ -43,10 +46,12 @@ def generate_access_token():
 
 
 # Central way to get headers for requests to Twitch
-def get_auth_headers():
+def get_auth_headers(access_token = None):
+    if access_token == None:
+        access_token = get_access_token()
     headers = {
         "Client-ID": client_id,
-        "Authorization": f"Bearer {get_access_token()}"
+        "Authorization": f"Bearer {access_token}"
     }
     return headers
 
@@ -58,7 +63,7 @@ def validate_auth(access_token):
     }
     response = requests.get(url="https://id.twitch.tv/oauth2/validate", headers=headers)
     response_json = response.json()
-    if response.status_code == requests.status_codes.ok & response_json.get('client_id') == client_id:
+    if response.ok and response_json.get('client_id') == client_id:
         return response_json
     return False
 
@@ -99,7 +104,7 @@ def send_twitch_request(endpoint, body=None, params=None, method = "GET", header
 
         # Twitch doesn't return data when sending DELETE so just return if the call succeeded
         if method == "DELETE":
-            return response.status_code == requests.status_codes.ok
+            return response.ok
         
         # Translate the body into JSON
         response_json = response.json()
@@ -119,7 +124,7 @@ def send_twitch_request(endpoint, body=None, params=None, method = "GET", header
 
 # Method to easily get the scopes needed for an event
 def get_scopes_for_event(event_name):
-    return get_events().get(event_name["scopes"], "public")
+    return get_events(event_name).get("scopes", ["public"])
 
 
 # Get all event types
@@ -288,3 +293,38 @@ def subscribe_user(user_id):
     for event in get_event_types():
         body = get_subscription_body(user_id, event)
         send_twitch_request(endpoint=eventsub_endpoint, method="POST", body=body)
+
+
+
+# Generate authorization URL
+def get_auth_url():
+    # https://id.twitch.tv/oauth2/authorize?client_id=<your client ID>&redirect_uri=<your registered redirect URI>&response_type=<type>&scope=<space-separated list of scopes>
+    scopes = []
+    for event in get_event_types():
+        event_scopes = get_scopes_for_event(event)
+        for event_scope in event_scopes:
+            if event_scope.lower() != "public" and event_scope.lower() not in scopes:
+                scopes.append(event_scope)
+
+    query_params = {
+        "client_id": client_id,
+        "redirect_uri": auth_redirect_uri,
+        "response_type": "token",
+        "force_verify": "true",
+        "scope": " ".join(scopes)
+    }
+    formatted_query_params = urlencode(query_params)
+    return f"https://id.twitch.tv/oauth2/authorize?{formatted_query_params}"
+
+
+# Get a user from Twitch on ID, with an option access_token
+# If no access_token is passed in, use the one generated on app start
+def get_user(id, access_token=None):
+    params = {
+        "id": id
+    }
+    if access_token:
+        headers = get_auth_headers(access_token)
+    else:
+        headers = get_auth_headers()
+    return send_twitch_request(endpoint="users", method="GET", params=params, headers=headers)
